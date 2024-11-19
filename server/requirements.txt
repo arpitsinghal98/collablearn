@@ -1,0 +1,8 @@
+# To install below dependencies please use the following command "pip/pip3 install -r requirements.txt"
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+passlib[bcrypt]
+python-jose
