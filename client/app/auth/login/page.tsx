@@ -39,6 +39,7 @@ const LoginPage = () => {
     try {
       // Call API to log in with email and password
       const data = await api.login(email, password);
+      
       console.log("Login successful:", data);
       router.push("/dashboard"); // Redirect to dashboard
     } catch (error) {

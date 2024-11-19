@@ -67,7 +67,26 @@ export const api = {
     return response.data;
   },
 
+  getUserInfo: async (token: string) => {
+    const response = await apiClient.get("/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
 
+  getJoinedGroups: async (token: string) => {
+    const response = await apiClient.get("/user/groups", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  getRecentActivity: async (token: string) => {
+    const response = await apiClient.get("/user/activity", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
 };
 
 export default api;
