@@ -5,6 +5,7 @@ from models.group import Group
 from models.user import User
 from core.database import get_db
 from core.security import get_current_user
+from models.group_member import GroupMember
 
 router = APIRouter()
 
@@ -63,3 +64,10 @@ def delete_group(group_id: int, db: Session = Depends(get_db), current_user: Use
     db.delete(group)
     db.commit()
     return {"message": "Group deleted successfully"}
+
+@router.get("/{group_id}")
+def get_group(group_id: int, db: Session = Depends(get_db)):
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    return group
