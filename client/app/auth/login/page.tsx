@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/utils/api"; // Import the centralized API utility
+import api, {setAccessToken} from "@/utils/api"; // Import the centralized API utility
 
 const LoginPage = () => {
   const router = useRouter();
@@ -10,24 +10,38 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [showPassword, setShowPassword] = useState(false); // Password visibility toggle
+
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Automatically focus on the password field when email is verified
+  useEffect(() => {
+    if (isEmailChecked && passwordInputRef.current) {
+      passwordInputRef.current.focus();
+    }
+  }, [isEmailChecked]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setIsLoading(true); // Start loading
 
     try {
       // Call API to check if the email exists
       const response = await api.checkEmail(email);
 
+      setIsLoading(false); // Stop loading
       if (response.exists) {
-        // If email exists, prompt for password
+        // If email exists, proceed to password entry
         setIsEmailChecked(true);
       } else {
         // Redirect to registration page with prefilled email
         router.push(`/auth/register?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
-      setErrorMessage("An error occurred. Please try again.");
+      setIsLoading(false); // Stop loading
+      setErrorMessage("An error occurred while checking your email. Please try again.");
       console.error("Error checking email:", error);
     }
   };
@@ -35,18 +49,27 @@ const LoginPage = () => {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-
+    setIsLoading(true); // Start loading
+  
     try {
       // Call API to log in with email and password
-      const data = await api.login(email, password);
+      const response = await api.login(email, password);
+  
+      console.log(response.access_token)
+      // Store the access token
+      setAccessToken(response.access_token);
+
       
-      console.log("Login successful:", data);
+  
+      setIsLoading(false); // Stop loading
       router.push("/dashboard"); // Redirect to dashboard
     } catch (error) {
+      setIsLoading(false); // Stop loading
       setErrorMessage("Invalid password. Please try again.");
       console.error("Login failed:", error);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -63,31 +86,60 @@ const LoginPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading} // Disable while loading
             />
             <button
               type="submit"
               className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+              disabled={isLoading} // Disable while loading
             >
-              Next
+              {isLoading ? "Checking..." : "Next"}
             </button>
           </form>
         ) : (
           // Password input form
           <form onSubmit={handlePasswordSubmit}>
-            <label className="block mb-2 font-medium">Password</label>
+            <label className="block mb-2 font-medium">Email</label>
             <input
-              type="password"
-              className="w-full border p-2 rounded mb-4"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              type="email"
+              className="w-full border p-2 rounded mb-4 bg-gray-100 cursor-not-allowed"
+              value={email}
+              disabled // Make email non-editable
             />
-            <button
-              type="submit"
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            >
-              Login
-            </button>
+            <label className="block mb-2 font-medium">Password</label>
+            <div className="relative mb-4">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full border p-2 rounded"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                ref={passwordInputRef} // Focus when entering password step
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+            <div className="flex justify-between">
+              <button
+                type="button"
+                onClick={() => setIsEmailChecked(false)} // Go back to email input
+                className="text-blue-500 hover:underline"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-500 text-white py-2 px-6 rounded hover:bg-blue-600"
+                disabled={isLoading} // Disable while loading
+              >
+                {isLoading ? "Logging in..." : "Login"}
+              </button>
+            </div>
           </form>
         )}
 

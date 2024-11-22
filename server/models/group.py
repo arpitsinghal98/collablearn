@@ -14,3 +14,6 @@ class Group(Base):
 
     # Example relationship (optional)
     creator = relationship("User", back_populates="groups")
+    members = relationship("GroupMember", back_populates="group", cascade="all, delete-orphan")
+    messages = relationship('Message', back_populates='group')
+    resources = relationship('Resource', back_populates='group')

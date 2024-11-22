@@ -18,3 +18,7 @@ class User(Base):
     active = Column(Boolean, default=True)
 
     groups = relationship("Group", back_populates="creator", cascade="all, delete-orphan")
+    group_memberships = relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
+    messages = relationship('Message', back_populates='user')
+    resources = relationship('Resource', back_populates='user')
+    badges = relationship('Badge', back_populates='user')
